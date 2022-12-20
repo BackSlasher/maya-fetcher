@@ -1,8 +1,10 @@
 import argparse
 import models
+import db
 import json
 from sqlalchemy.orm import Session
 import datetime
+
 
 def unique_by(inp, unique_extractor, score=None):
     ret=[]
@@ -19,12 +21,14 @@ def unique_by(inp, unique_extractor, score=None):
 def import_file():
     with open("test/maya_tase_companies_current_shareholders.json", "r") as f:
         data = json.load(f)
-    session = Session(models.engine)
+    session = Session(db.engine)
     with session.begin():
         # Create new snapshot
         date_taken = datetime.date(2022,12,19)
         sn = models.Snapshot(date_taken=date_taken)
         session.add(sn)
+        # Ensures snapshots land first, for FK constraints
+        session.flush()
         # Itereate over objects
         companies=[]
         securities=[]
@@ -72,12 +76,13 @@ def import_file():
             ))
 
         [session.add(i) for i in unique_by(companies, lambda c: (c.ds, c.id), score=lambda c:(c.long_name or "", c.corporate_number or 0, c.site or ""))]
+        session.flush()
         [session.add(i) for i in unique_by(securities, lambda c: (c.ds, c.id))]
 
 
 
 def init():
-    models.init_db()
+    db.reset_db()
 
 def parse_args():
     parser = argparse.ArgumentParser(
