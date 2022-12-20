@@ -7,15 +7,18 @@ from sqlalchemy.orm import DeclarativeBase
 class Base(DeclarativeBase):
     pass
 
-def get_engine():
-    # SQLite
-    # return create_engine("sqlite:///bla.sqlite", echo=True)
-    # PostgreSQL
-    user = os.environ.get("PGUSER")
-    password = os.environ["PGPASSWORD"]
-    return create_engine(f"postgresql://{user}:{password}@test-finance.ctkj9wimtlrm.us-east-1.rds.amazonaws.com:5432/pension", echo=True)
+engine = None
 
-engine = get_engine()
+def set_engine(engine_name: str):
+    global engine
+    if engine_name == "sqlite":
+        engine = create_engine("sqlite:///bla.sqlite", echo=True)
+    elif engine_name == "postgresql":
+        user = os.environ.get("PGUSER")
+        password = os.environ["PGPASSWORD"]
+        engine = create_engine(f"postgresql://{user}:{password}@test-finance.ctkj9wimtlrm.us-east-1.rds.amazonaws.com:5432/pension", echo=True)
+    else:
+        raise ValueError("Engine name is unclear", engine_name)
 
 
 def reset_db():

@@ -85,10 +85,8 @@ def init():
     db.reset_db()
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        prog = 'ProgramName',
-        description = 'What the program does',
-        epilog = 'Text at the bottom of help')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--db", default="sqlite", help="Database engine type")
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("init")
     parser_import = subparsers.add_parser("import")
@@ -96,6 +94,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    db.set_engine(args.db)
     if args.command == "init":
         init()
     elif args.command == "import":
